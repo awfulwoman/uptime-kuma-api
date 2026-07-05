@@ -109,7 +109,7 @@ def create_app(
         name = spec.get("name")
         if not name:
             raise ValueError("monitor 'name' is required")
-        kwargs = {"type": _MONITOR_TYPES[mtype], "name": name}
+        kwargs = {"type": _MONITOR_TYPES[mtype], "name": name, "conditions": []}
         if mtype == "http":
             url = spec.get("url")
             if not url:
