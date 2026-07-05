@@ -48,7 +48,7 @@ def _default_uptime_api_factory() -> UptimeKumaApi:
     # 1.2.1 doesn't know about it so we inject it at the socket.io layer.
     _orig_call = api._call
     def _patched_call(event, data=None):
-        if event == "addMonitor" and isinstance(data, dict) and "conditions" not in data:
+        if event == "add" and isinstance(data, dict) and "conditions" not in data:
             data = dict(data, conditions=[])
         return _orig_call(event, data)
     api._call = _patched_call
