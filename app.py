@@ -44,6 +44,14 @@ def _default_uptime_api_factory() -> UptimeKumaApi:
     log.info("connecting to uptime-kuma at %s", url)
     api = UptimeKumaApi(url, timeout=30)
     api.login(username, password)
+    # Uptime Kuma v2 added a NOT NULL `conditions` column; uptime-kuma-api
+    # 1.2.1 doesn't know about it so we inject it at the socket.io layer.
+    _orig_call = api._call
+    def _patched_call(event, data=None):
+        if event == "addMonitor" and isinstance(data, dict) and "conditions" not in data:
+            data = dict(data, conditions=[])
+        return _orig_call(event, data)
+    api._call = _patched_call
     return api
 
 
@@ -109,7 +117,7 @@ def create_app(
         name = spec.get("name")
         if not name:
             raise ValueError("monitor 'name' is required")
-        kwargs = {"type": _MONITOR_TYPES[mtype], "name": name, "conditions": []}
+        kwargs = {"type": _MONITOR_TYPES[mtype], "name": name}
         if mtype == "http":
             url = spec.get("url")
             if not url:
